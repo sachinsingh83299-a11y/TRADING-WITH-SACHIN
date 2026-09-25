@@ -1,0 +1,4 @@
+- name: Verify APK
+  run: |
+    find android_app -name "*.apk" -type f -print
+    test -f android_app/app/build/outputs/apk/debug/app-debug.apk
