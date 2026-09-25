@@ -18,84 +18,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java 21
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Locate Android app module
-        shell: bash
-        run: |
-          echo "Searching for Android app module..."
-
-          APP_BUILD=$(find . -type f \
-            -path "*/app/build.gradle" \
-            -not -path "./.git/*" \
-            | head -n 1)
-
-          if [ -z "$APP_BUILD" ]; then
-            APP_BUILD=$(find . -type f \
-              -path "*/app/build.gradle.kts" \
-              -not -path "./.git/*" \
-              | head -n 1)
-          fi
-
-          if [ -z "$APP_BUILD" ]; then
-            echo "ERROR: app/build.gradle not found."
-            echo "Repository structure:"
-            find . -maxdepth 7 -type f | sort
-            exit 1
-          fi
-
-          ANDROID_DIR=$(dirname "$(dirname "$APP_BUILD")")
-
-          echo "Found:"
-          echo "$APP_BUILD"
-
-          echo "Android project:"
-          echo "$ANDROID_DIR"
-
-          echo "ANDROID_DIR=$ANDROID_DIR" >> "$GITHUB_ENV"
-
       - name: Check Android project
-        shell: bash
         run: |
-          echo "Android project contents:"
-          find "$ANDROID_DIR" -maxdepth 3 -type f | sort
+          echo "=== Project ==="
+          pwd
+          echo "=== Files ==="
+          find . -maxdepth 4 -type f | sort
 
-      - name: Show Gradle tasks
-        shell: bash
+      - name: Build Debug APK
         run: |
-          gradle -p "$ANDROID_DIR" tasks --all
-
-      - name: Build APK
-        shell: bash
-        run: |
-          gradle \
-            -p "$ANDROID_DIR" \
-            :app:assembleDebug \
-            --stacktrace \
-            --no-daemon
+          gradle assembleDebug --stacktrace --no-daemon
 
       - name: Find APK
-        shell: bash
         run: |
-          echo "Generated APK:"
-          find "$ANDROID_DIR" \
-            -type f \
-            -name "*.apk" \
-            -print
+          echo "=== APK files ==="
+          find . -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: NIFTY-Option-AI-debug
           path: |
-            **/build/outputs/apk/debug/*.apk
+            build/outputs/apk/debug/*.apk
           if-no-files-found: error
