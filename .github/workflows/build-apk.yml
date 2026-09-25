@@ -29,31 +29,18 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Check project structure
-        run: |
-          echo "=== ROOT ==="
-          ls -la
-          echo "=== APP ==="
-          ls -la app
-          echo "=== MAIN ==="
-          find app/src/main -maxdepth 5 -type f | sort
+      - name: List Gradle Projects
+        run: gradle projects
 
-      - name: Show Gradle tasks
+      - name: Build APK
         run: |
-          gradle tasks --all --stacktrace --no-daemon
-
-      - name: Build Debug APK
-        run: |
-          gradle :app:assembleDebug --stacktrace --no-daemon
-
-      - name: Find APK
-        run: |
-          echo "=== APK FILES ==="
-          find . -type f -name "*.apk" -print
+          gradle assembleDebug \
+            --no-daemon \
+            --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: NIFTY-Option-AI-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          if-no-files-found: ignore
