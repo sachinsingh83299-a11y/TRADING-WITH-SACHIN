@@ -1,0 +1,6 @@
+- name: Find Android project
+  run: |
+    echo "=== PROJECT STRUCTURE ==="
+    find . -maxdepth 6 -type f \
+      \( -name "settings.gradle" -o -name "settings.gradle.kts" -o -name "build.gradle" -o -name "build.gradle.kts" \) \
+      -print
