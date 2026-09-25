@@ -19,9 +19,11 @@ jobs:
         java-version: '17'
 
     - name: Make gradlew executable
-      run: chmod +x ./gradlew
+      working-directory: ./
+      run: chmod +x gradlew
 
     - name: Build APK
+      working-directory: ./
       run: ./gradlew assembleDebug
 
     - name: Upload APK Artifact
