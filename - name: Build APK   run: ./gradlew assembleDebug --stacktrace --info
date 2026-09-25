@@ -1,0 +1,10 @@
+- name: Debug project structure
+  run: |
+    echo "Current directory:"
+    pwd
+
+    echo "Root files:"
+    ls -la
+
+    echo "Gradle files:"
+    find . -maxdepth 3 -type f \( -name "gradlew" -o -name "settings.gradle" -o -name "settings.gradle.kts" -o -name "build.gradle" -o -name "build.gradle.kts" \) -print
