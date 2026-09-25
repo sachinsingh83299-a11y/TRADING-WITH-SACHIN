@@ -1,10 +1,4 @@
-- name: Debug project structure
+- name: Locate Android project
   run: |
-    echo "Current directory:"
-    pwd
-
-    echo "Root files:"
-    ls -la
-
-    echo "Gradle files:"
-    find . -maxdepth 3 -type f \( -name "gradlew" -o -name "settings.gradle" -o -name "settings.gradle.kts" -o -name "build.gradle" -o -name "build.gradle.kts" \) -print
+    echo "Android folders:"
+    find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print
