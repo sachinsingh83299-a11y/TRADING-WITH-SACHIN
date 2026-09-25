@@ -1,4 +1,18 @@
-- name: Verify APK
-  run: |
-    find . -name "*.apk" -type f -print
-    test -f app/build/outputs/apk/debug/app-debug.apk
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "NIFTY Option AI"
+include(":app")
