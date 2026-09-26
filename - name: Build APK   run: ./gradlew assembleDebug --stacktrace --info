@@ -1,4 +1,0 @@
-- name: Locate Android project
-  run: |
-    echo "Android folders:"
-    find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print
