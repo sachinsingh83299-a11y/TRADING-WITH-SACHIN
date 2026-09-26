@@ -1,0 +1,6 @@
+- name: Build V7 Debug APK
+  run: |
+    gradle -p android_app :app:assembleDebug \
+      --no-daemon \
+      --stacktrace \
+      --warning-mode all
