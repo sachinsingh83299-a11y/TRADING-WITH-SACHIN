@@ -10,59 +10,83 @@ permissions:
   contents: read
 
 jobs:
-  build-apk:
+  build:
     name: Build Android APK
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Locate Android project
-        shell: bash
-        run: |
-          set -e
-          ANDROID_DIR=$(find . -type f \( -name 'settings.gradle' -o -name 'settings.gradle.kts' \) \\
-            -not -path './.git/*' -printf '%h\n' | head -n 1)
-
-          if [ -z "$ANDROID_DIR" ]; then
-            echo "ERROR: Android Gradle project not found."
-            find . -maxdepth 5 -type f | sort
-            exit 1
-          fi
-
-          echo "Android project: $ANDROID_DIR"
-          echo "ANDROID_DIR=$ANDROID_DIR" >> "$GITHUB_ENV"
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
 
       - name: Setup Java 17
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
+          cache: gradle
 
-      - name: Setup Gradle 8.11.1
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.11.1'
-
-      - name: Build debug APK
-        shell: bash
+      - name: Show project files
         run: |
-          set -e
-          cd "$ANDROID_DIR"
-          echo "Building from: $(pwd)"
+          echo "===== PROJECT ====="
           ls -la
-          gradle assembleDebug --no-daemon
+          echo "===== PACKAGE ====="
+          cat package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Remove old Android folder
+        run: |
+          rm -rf android
+          echo "Old android folder removed."
+
+      - name: Generate Android project
+        run: |
+          npx expo prebuild \
+            --platform android \
+            --clean \
+            --non-interactive
+
+      - name: Verify Android project
+        run: |
+          echo "===== ANDROID ====="
+          ls -la android
+          echo "===== SETTINGS.GRADLE ====="
+          cat android/settings.gradle
+          echo "===== GRADLE VERSION ====="
+          cd android
+          chmod +x gradlew
+          ./gradlew --version
+
+      - name: Build Release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --stacktrace \
+            --info
 
       - name: Find APK
-        shell: bash
+        if: success()
         run: |
-          echo "Generated APK files:"
-          find "$ANDROID_DIR" -type f -name '*.apk' -print
+          echo "===== APK FILES ====="
+          find android/app/build/outputs -type f -name "*.apk" -print
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        if: success()
+        uses: actions/upload-artifact@v6
         with:
           name: NIFTY-Option-AI-APK
-          path: '**/build/outputs/apk/debug/*.apk'
+          path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 30
