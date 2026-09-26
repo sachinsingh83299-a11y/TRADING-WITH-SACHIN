@@ -10,83 +10,48 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-apk:
     name: Build Android APK
-    runs-on: ubuntu-latest
-
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
+        uses: actions/checkout@v4
 
       - name: Setup Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
 
-      - name: Show project files
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Check Gradle project
         run: |
-          echo "===== PROJECT ====="
-          ls -la
-          echo "===== PACKAGE ====="
-          cat package.json
+          gradle --version
+          gradle projects
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Remove old Android folder
+      - name: Check Android tasks
         run: |
-          rm -rf android
-          echo "Old android folder removed."
+          gradle :app:tasks --all
 
-      - name: Generate Android project
+      - name: Build Debug APK
         run: |
-          npx expo prebuild \
-            --platform android \
-            --clean \
-            --non-interactive
-
-      - name: Verify Android project
-        run: |
-          echo "===== ANDROID ====="
-          ls -la android
-          echo "===== SETTINGS.GRADLE ====="
-          cat android/settings.gradle
-          echo "===== GRADLE VERSION ====="
-          cd android
-          chmod +x gradlew
-          ./gradlew --version
-
-      - name: Build Release APK
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleRelease \
+          gradle :app:assembleDebug \
             --no-daemon \
-            --stacktrace \
-            --info
+            --stacktrace
 
-      - name: Find APK
-        if: success()
+      - name: Check APK
         run: |
-          echo "===== APK FILES ====="
-          find android/app/build/outputs -type f -name "*.apk" -print
+          echo "APK files:"
+          find app/build/outputs -type f -name "*.apk" -print
 
       - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
-          name: NIFTY-Option-AI-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          name: NIFTY-Option-AI-debug
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          retention-days: 30
