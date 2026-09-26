@@ -34,7 +34,7 @@ jobs:
 
       - name: Build APK
         run: |
-          gradle assembleDebug \
+          gradle :app:assembleDebug \
             --no-daemon \
             --stacktrace
 
@@ -43,4 +43,4 @@ jobs:
         with:
           name: NIFTY-Option-AI-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: ignore
+          if-no-files-found: error
